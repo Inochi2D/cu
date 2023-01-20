@@ -1,6 +1,6 @@
-module parser.ast;
-import parser.token;
-import parser.utils;
+module compiler.parser.ast;
+import compiler.parser.token;
+import compiler.common.utils;
 import std.conv;
 import std.format;
 import std.stdio;
@@ -171,7 +171,7 @@ public:
 
     /// Constructor
     this(ASTAttribute attrib) {
-        this.attrib = attrib;
+        this.attribs ~= attrib;
     }
 
     /// At node to children at start
@@ -208,13 +208,17 @@ public:
         children++;
     }
 
+    void addAttrib(ASTAttribute attrib) {
+        attribs ~= attrib;
+    }
+
     /// Count of children this node is parent to.
     size_t childrenCount() {
         return children;
     }
 
     /// AST Attribute
-    ASTAttribute attrib;
+    ASTAttribute[] attribs;
 
     /// The token associated with this node
     Token token;
@@ -244,7 +248,7 @@ public:
         /// TODO: This ugly code needs some serious rewriting.
         string txt = token.lexeme != "" ? token.lexeme : "";
         string typ = token.id != tkUnknown ? token.id.text : "<arb>";
-        string attribstr = attrib.getString() !is null ? attrib.getString()~" " : "";
+        string attribstr = attribs.text !is null ? attribs.text~" " : "";
 
         string offs = (chd.length > 0 ? "\n" ~ "".offsetBy(indent*2) : "");
         string offsrc = (right !is null ? "," : "");

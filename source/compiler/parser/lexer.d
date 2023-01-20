@@ -1,6 +1,7 @@
-module parser.lexer;
-import parser.token;
-import parser.utils;
+module compiler.parser.lexer;
+import compiler.parser.token;
+import compiler.common.utils;
+import compiler.common.msg;
 import std.uni;
 import std.stdio;
 
@@ -31,7 +32,7 @@ shared static this()
     keywords["void"] = tkVoid;
 
  
-    keywords["ptr"] = tkPtr;
+    keywords["ref"] = tkRef;
     keywords["string"] = tkString;
     keywords["char"] = tkChar;
     keywords["struct"] = tkStruct;
@@ -62,10 +63,8 @@ shared static this()
 
     keywords["panic"] = tkPanic;
 
-    keywords["local"] = tkLocal;
-    keywords["private"] = tkLocal;
-    keywords["global"] = tkGlobal;
-    keywords["public"] = tkGlobal;
+    keywords["private"] = tkPrivate;
+    keywords["public"] = tkPublic;
     keywords["exdecl"] = tkExternalDeclaration;
     keywords["new"] = tkNew;
 }
@@ -105,7 +104,7 @@ private:
 
     void internalErrFunc(string source, Token tk, string error)
     {
-        writeln(source.getOutText(tk, error));
+        writeln(cuPrettyPrintLineMessage(source, tk, error));
     }
 
     // Lexing utils

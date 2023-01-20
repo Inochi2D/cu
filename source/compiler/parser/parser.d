@@ -1,26 +1,27 @@
-module parser.parser;
-import parser;
-import parser.token;
-import parser.ast;
-import parser.lexer;
-import parser.utils;
-import parser.token;
+module compiler.parser.parser;
+import compiler.parser;
+import compiler.parser.token;
+import compiler.parser.ast;
+import compiler.parser.lexer;
+import compiler.common.utils;
+import compiler.common.msg;
+import compiler.parser.token;
 import std.conv;
 import std.format;
 import std.stdio;
 
 public:
-/*
-    Parses code from tokens to an extended AST.
-    Also reads type mappings for use in the type analysis.
-*/
-class Parser {
+
+class Scanner {
 private:
     Token prevToken;
     Token curToken;
     Lexer lexer;
     bool doSkipComments;
 
+    CompileMessage[] messages;
+
+public:
     void getToken(Token* token, string func = __PRETTY_FUNCTION__) {
         prevToken = curToken;
         if (token is null) {
@@ -77,9 +78,18 @@ private:
         if (tkRef is null) {
             Token tk;
             peekNext(&tk);
-            throw new ParserException(lexer.getSource, &tk, errMsg);
+            messages ~= cuCreateError(lexer.getSource, &tk, errMsg);
         }
-        throw new ParserException(lexer.getSource, tkRef, errMsg);
+        messages ~= cuCreateError(lexer.getSource, tkRef, errMsg);
+    }
+
+    void warning(string warningMsg, Token* tkRef = null) {
+        if (tkRef is null) {
+            Token tk;
+            peekNext(&tk);
+            messages ~= cuCreateWarning(lexer.getSource, &tk, warningMsg);
+        }
+        messages ~= cuCreateWarning(lexer.getSource, tkRef, warningMsg);
     }
 
     // impl
@@ -111,6 +121,15 @@ private:
         rewindTo(&tk);
     }
 
+}
+
+/*
+    Parses code from tokens to an extended AST.
+    Also reads type mappings for use in the type analysis.
+*/
+class Parser {
+private:
+/+
     /*
                                     Type scanning
     */
@@ -268,7 +287,7 @@ private:
             return comment();
         }
 
-        if (isType(tk) || match(tk, [tkExternalDeclaration, tkGlobal, tkLocal, tkFunction, tkStruct, tkClass, tkThis, tkMeta])) {
+        if (isType(tk) || match(tk, [tkExternalDeclaration, tkPrivate, tkPublic, tkFunction, tkStruct, tkClass, tkThis, tkMeta])) {
             return preDecl(isTopLevel, isStruct);
         }
 
@@ -490,7 +509,7 @@ private:
         Token tk;
         Token tk2;
         getToken(&tk);
-        while(match(tk, [tkGlobal, tkLocal, tkExternalDeclaration])) {
+        while(match(tk, [tkPrivate, tkPublic, tkExternalDeclaration])) {
             attribNode.add(new Node(tk));
             getToken(&tk);
         }
@@ -629,7 +648,7 @@ private:
             tkDouble,
             tkString,
             tkChar,
-            tkPtr
+            tkRef
         ]) || match(tk, [tkIdentifier]));
     }
 
@@ -1251,25 +1270,26 @@ private:
         }
         return null;
     }
-
++/
 public:
 
     /*
         Scan for types, this is run internally by parse
     */
     void scanTypes() {
-        scanRoot();
+        // scanRoot();
     }
 
     /*
         Start parsing code
     */
     Node* parse(string source) {
-        this.lexer = Lexer(source);
+        // this.lexer = Lexer(source);
 
-        // Scan the type mapping for this file.
-        scanTypes();
+        // // Scan the type mapping for this file.
+        // scanTypes();
 
-        return module_();
+        // return module_();
+        return null;
     }
 }

@@ -1,4 +1,4 @@
-module parser.token;
+module compiler.parser.token;
 
 /// Token
 alias TokenId = ushort;
@@ -242,8 +242,8 @@ enum TokenId tkString = 122;
 /// Array
 enum TokenId tkArray = 123;
 
-/// ptr
-enum TokenId tkPtr = 124;
+/// reference
+enum TokenId tkRef = 124;
 
 /// meta
 enum TokenId tkMeta = 125;
@@ -291,11 +291,11 @@ enum TokenId tkIs = 206;
 /// !is
 enum TokenId tkNotIs = 207;
 
-/// local/private
-enum TokenId tkLocal = 208;
+/// private
+enum TokenId tkPrivate = 208;
 
-/// global/public
-enum TokenId tkGlobal = 209;
+/// public
+enum TokenId tkPublic = 209;
 
 /// import
 enum TokenId tkImport = 210;
@@ -332,7 +332,7 @@ enum TokenId tkPanic = 255;
 
 /// A Token
 public struct Token {
-package:
+package(compiler):
     string source;
 
 public:
