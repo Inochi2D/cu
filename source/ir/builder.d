@@ -1,42 +1,41 @@
 module ir.builder;
-import ir.block;
-import ir.types;
+import ir.elements.block;
+import ir.elements.types.type;
+import ir.elements.value;
 import ir.opcodes;
-import ir.value;
 
 import std.conv : text;
 
 class CuIRBuilder {
 private:
-    CuIRBlockRef block;
+    CuBasicBlock block;
     size_t bCounter;
 
-    CuIRValueRef consumeValue(CuIRValueRef t) {
+    CuValue consumeValue(CuValue t) {
         if (t) {
             t.setName(t.getName()~(bCounter++).text);
-            bCounter++;
         }
         return t;
     }
 public:
-    this(CuIRBlock* block) {
+    this(CuBasicBlock block) {
         this.block = block;
     }
 
     /**
         Returns the block
     */
-    CuIRBlockRef getBlock() {
+    CuBasicBlock getBlock() {
         return block;
     }
 
-    CuIRValueRef buildAdd(CuIRValueRef a, CuIRValueRef b) { 
-        CuIRValueRef retVal = new CuIRValue(a.getType());
+    CuValue buildAdd(CuValue a, CuValue b) { 
+        CuValue retVal = new CuValue(a.getType());
         consumeValue(retVal);
 
         block.instructions ~= CuIRInstruction(
             retVal, 
-            CuIROpCode.ADD, 
+            CuOpCode.ADD, 
             a.getType(), 
             [
                 CuIROperand(a),
@@ -46,13 +45,13 @@ public:
         return retVal;
     }
 
-    CuIRValueRef buildMul(CuIRValueRef a, CuIRValueRef b) { 
-        CuIRValueRef retVal = new CuIRValue(a.getType());
+    CuValue buildMul(CuValue a, CuValue b) { 
+        CuValue retVal = new CuValue(a.getType());
         consumeValue(retVal);
 
         block.instructions ~= CuIRInstruction(
             retVal, 
-            CuIROpCode.MUL, 
+            CuOpCode.MUL, 
             a.getType(), 
             [
                 CuIROperand(a),
@@ -62,13 +61,13 @@ public:
         return retVal;
     }
 
-    CuIRValueRef buildSub(CuIRValueRef a, CuIRValueRef b) { 
-        CuIRValueRef retVal = new CuIRValue(a.getType());
+    CuValue buildSub(CuValue a, CuValue b) { 
+        CuValue retVal = new CuValue(a.getType());
         consumeValue(retVal);
 
         block.instructions ~= CuIRInstruction(
             retVal, 
-            CuIROpCode.SUB, 
+            CuOpCode.SUB, 
             a.getType(), 
             [
                 CuIROperand(a),
@@ -78,13 +77,13 @@ public:
         return retVal;
     }
 
-    CuIRValueRef buildDiv(CuIRValueRef a, CuIRValueRef b) { 
-        CuIRValueRef retVal = new CuIRValue(a.getType());
+    CuValue buildDiv(CuValue a, CuValue b) { 
+        CuValue retVal = new CuValue(a.getType());
         consumeValue(retVal);
 
         block.instructions ~= CuIRInstruction(
             retVal, 
-            CuIROpCode.DIV, 
+            CuOpCode.DIV, 
             a.getType(), 
             [
                 CuIROperand(a),
@@ -94,13 +93,13 @@ public:
         return retVal;
     }
 
-    CuIRValueRef buildRet(CuIRValueRef a) { 
-        CuIRValueRef retVal = new CuIRValue(a.getType());
+    CuValue buildRet(CuValue a) { 
+        CuValue retVal = new CuValue(a.getType());
         consumeValue(retVal);
 
         block.instructions ~= CuIRInstruction(
             retVal, 
-            CuIROpCode.RET, 
+            CuOpCode.RET, 
             a.getType(), 
             [
                 CuIROperand(a)
@@ -109,14 +108,28 @@ public:
         return retVal;
     }
 
-    CuIRValueRef buildRet() { 
-        CuIRValueRef retVal = new CuIRValue(cuirTypeCreateVoid());
+    CuValue buildRet() { 
+        CuValue retVal = new CuValue(cuirCreateVoid());
 
         block.instructions ~= CuIRInstruction(
             retVal, 
-            CuIROpCode.RET, 
-            cuirTypeCreateVoid(), 
+            CuOpCode.RET, 
+            cuirCreateVoid(), 
             []
+        );
+        return retVal;
+    }
+
+    CuValue buildJump(CuBasicBlock newblock) { 
+        CuValue retVal = new CuValue(cuirCreateVoid());
+
+        block.instructions ~= CuIRInstruction(
+            retVal, 
+            CuOpCode.JMP, 
+            cuirCreateVoid(), 
+            [
+                CuIROperand(newblock)
+            ]
         );
         return retVal;
     }

@@ -1,59 +1,104 @@
 module ir.opcodes;
-import ir.types;
-import ir.value;
 import std.uni : toLower;
 import std.conv : text;
-import ir.block;
+import ir.elements.element;
+import ir.elements.block;
+import ir.elements.value;
+import ir.elements.types.type;
+import ir.elements.io;
+import ir.elements.assembly;
+import std.file;
 
-enum CuIROpCode : ubyte {
-    ADD,
-    SUB,
-    MUL,
-    DIV,
+enum CuOpCode : ubyte {
+    ADD     = 0x01,
+    SUB     = 0x02,
+    MUL     = 0x03,
+    DIV     = 0x04,
 
-    GEP,
+    GEP     = 0x10,
 
-    RET,
-    CALL,
+    RET     = 0x20,
+    CALL    = 0x21,
+
+    JMP     = 0x50,
 }
 
 struct CuIRInstruction {
     /**
-        The value (named type) returned from the instruction
+        Return value
     */
-    CuIRValue* return_;
+    CuValue value;
 
     /**
         The opcode of the instruction
     */
-    CuIROpCode op;
+    CuOpCode op;
 
     /**
         Operand Type
     */
-    CuIRBaseType opType;
+    CuType opType;
 
     /**
         Operands
     */
     CuIROperand[] operands;
+    
+    /**
+        Serialize the element to the specified buffer
+    */
+    void serialize(StreamWriter buffer) {
+        buffer.write(cast(bool)(value !is null));
+        if (value) {
+            buffer.write(value);
+        }
 
-    string toString() {
+        buffer.write(op);
+        buffer.write(opType);
+        buffer.write(operands);
+    }
+
+    /**
+        Deserialize the element from the specified buffer
+    */
+    void deserialize(CuScopedReader buffer) {
+        bool hasReturnValue;
+        buffer.read(hasReturnValue);
+        
+        if (hasReturnValue) {
+            buffer.read(value);
+        }
+
+        buffer.read(op);
+        buffer.read(opType);
+        buffer.read(operands);
+    }
+
+    /**
+        Resolve any extra information
+    */
+    void resolve(CuBasicBlock mod) {
+        foreach(ref operand; operands) {
+            operand.resolve(mod);
+        }
+    }
+
+    string disassemble() {
         string oString;
-        if (return_) {
-            oString ~= "%"~return_.getName()~" = ";
+        if (value) {
+            oString ~= "%"~value.getName()~" = ";
         }
         oString ~= op.text.toLower~" ";
-        if (opType) oString ~= opType.toString() ~ " ";
+        if (opType) oString ~= opType.getStringPretty() ~ " ";
 
         foreach(i, operand; operands) {
             
             switch(operand.type) {
                 case CuIROperandType.Value:
-                    oString ~= operand.value.getName() ? "%" ~ operand.value.getName() : operand.value.getValue();
+                    oString ~= operand.value.getName() ? "%" ~ operand.value.getName() : operand.value.getStringPretty();
                     break;
                 case CuIROperandType.Reference:
-                    oString ~= operand.ref_.getName();
+                    oString ~= operand.blockRef.getName();
                     break;
                 default: assert(0);
             }
@@ -64,26 +109,96 @@ struct CuIRInstruction {
     }
 }
 
-enum CuIROperandType {
-    Value,
-    Reference
+enum CuIROperandType : ubyte {
+    Value = 0x01,
+    Reference = 0x02
 }
 
 struct CuIROperand {
+private:
+    CuAssembly assembly;
+    string nameToResolve;
+
 public:
     CuIROperandType type;
     union {
-        CuIRValueRef value;
-        CuIRBlockRef ref_;
+        CuValue value;
+        CuBasicBlock blockRef;
     }
 
-    this(CuIRValueRef value) {
+    this(CuValue value) {
         this.value = value;
         this.type = CuIROperandType.Value;
     }
 
-    this(CuIRBlockRef ref_) {
-        this.ref_ = ref_;
+    this(CuBasicBlock blockRef) {
+        this.blockRef = blockRef;
         this.type = CuIROperandType.Reference;
+    }
+
+    /**
+        Serialize the element to the specified buffer
+    */
+    void serialize(StreamWriter buffer) {
+        buffer.write(cast(ubyte)type);
+        switch(type) {
+            case CuIROperandType.Value:
+                if (value.isImmediate()) {
+                    buffer.write(true);
+                    buffer.write(value);
+                } else {
+                    buffer.write(false);
+                    buffer.write(value.getName());
+                }
+                break;
+            case CuIROperandType.Reference:
+                buffer.write(blockRef.getName());
+                break;
+            default: assert(0);
+        }
+    }
+
+    /**
+        Deserialize the element from the specified buffer
+    */
+    void deserialize(CuScopedReader buffer) {
+        this.assembly = buffer.assembly;
+        buffer.read(type);
+
+        switch(type) {
+            case CuIROperandType.Value:
+                bool isImmediate;
+                buffer.read(isImmediate);
+
+                if (isImmediate) {
+                    buffer.read(value);
+                } else {
+                    buffer.read(nameToResolve);
+                }
+                break;
+            case CuIROperandType.Reference:
+                buffer.read(nameToResolve);
+                break;
+            default: assert(0);
+        }
+    }
+
+    /**
+        Resolve any extra information
+    */
+    void resolve(CuBasicBlock block) {
+        switch(type) {
+            case CuIROperandType.Value:
+
+                // Not immediate if null
+                if (!value) {
+                    value = block.findValueInBlock(nameToResolve);
+                }
+                break;
+            case CuIROperandType.Reference:
+                blockRef = block.getParent().getBlock(nameToResolve);
+                break;
+            default: assert(0);
+        }
     }
 }
