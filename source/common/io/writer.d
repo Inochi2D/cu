@@ -1,3 +1,9 @@
+/*
+    Copyright © 2023, Inochi2D Project
+    Distributed under the 2-Clause BSD License, see LICENSE file.
+    
+    Authors: Luna Nielsen
+*/
 module common.io.writer;
 import common.io.stream;
 import std.traits;
