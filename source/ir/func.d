@@ -11,6 +11,28 @@ import ir.io;
 import ir.block;
 import std.format;
 
+enum CuFuncCallingConvention {
+    /**
+        The DLang calling convention (default)
+    */
+    d,
+
+    /**
+        Automatically select appropriate C calling convention for platform
+    */
+    cauto,
+
+    /**
+        CDECL calling convention, used on POSIX systems
+    */
+    cdecl,
+
+    /**
+        Windows calling convention, used on Windows.
+    */
+    windows
+}
+
 class CuFunc : CuScopedType {
 private:
     struct CuFuncArg {
@@ -46,9 +68,10 @@ package(ir):
         this(name, cuirCreateVoid());
     }
 
+    CuFuncCallingConvention callingconv;
+    CuBasicBlock[] blocks;
 
 public:
-    CuBasicBlock[] blocks;
 
     /**
         Adds an argument to the function
@@ -61,14 +84,37 @@ public:
         }
     }
 
+    /**
+        Gets the return type of this function
+    */
     CuType getReturnType() {
         return returnType;
     }
 
+    /**
+        Sets the return type for this function
+    */
     void setReturnType(CuType returnType) {
         this.returnType = returnType;
     }
 
+    /**
+        Gets the calling convention of this function
+    */
+    CuFuncCallingConvention getCallingConvention() {
+        return callingconv;
+    }
+
+    /**
+        Sets the calling convention for this function
+    */
+    void setCallingConvention(CuFuncCallingConvention callingconv) {
+        this.callingconv = callingconv;
+    }
+
+    /**
+        Gets the name of the type
+    */
     override
     string getTypeName() {
         import std.format;
@@ -81,6 +127,9 @@ public:
         return "%s %s(%s)".format(returnType.getTypeName(), name, params);
     }
 
+    /**
+        Gets whether a specified basic block is in the function
+    */
     bool hasBlock(string name) {
         foreach(block; blocks) {
             if (block.getName() == name) return true; 
@@ -88,18 +137,24 @@ public:
         return false;
     }
 
-    CuBasicBlock appendBlock(string name) {
-        if (this.hasBlock(name)) throw new Exception("Block name already taken");
-        auto block = new CuBasicBlock(this, name);
-        blocks ~= block;
-        return block;
-    }
-
+    /**
+        Gets the specified basic block, returns null if none is found
+    */
     CuBasicBlock getBlock(string name) {
         foreach(ref block; blocks) {
             if (block.getName() == name) return block; 
         }
         return null;
+    }
+
+    /**
+        Appends a basic block on to the function
+    */
+    CuBasicBlock appendBlock(string name) {
+        if (this.hasBlock(name)) throw new Exception("Block name already taken");
+        auto block = new CuBasicBlock(this, name);
+        blocks ~= block;
+        return block;
     }
 
     override
