@@ -4,9 +4,9 @@
     
     Authors: Luna Nielsen
 */
-module ir.elements.types.compound;
+module ir.types.compound;
 
-import ir.elements.types.type;
+import ir.types.type;
 
 // class CuCompoundType : CuScopedType {
 

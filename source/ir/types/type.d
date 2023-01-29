@@ -4,15 +4,15 @@
     
     Authors: Luna Nielsen
 */
-module ir.elements.types.type;
-import ir.elements.element;
-import ir.elements.types.array;
-import ir.elements.assembly;
-import ir.elements.mod;
-import ir.elements.func;
+module ir.types.type;
+import ir.element;
+import ir.types.array;
+import ir.assembly;
+import ir.mod;
+import ir.func;
 
 import std.format;
-import ir.elements.io;
+import ir.io;
 import core.int128;
 
 enum CuTypeId : uint {

@@ -4,11 +4,11 @@
     
     Authors: Luna Nielsen
 */
-module ir.elements.element;
+module ir.element;
 
 public import common.io.reader;
 public import common.io.writer;
-import ir.elements.io;
+import ir.io;
 
 abstract
 class CuElement {

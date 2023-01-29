@@ -7,12 +7,12 @@
 module ir.opcodes;
 import std.uni : toLower;
 import std.conv : text;
-import ir.elements.element;
-import ir.elements.block;
-import ir.elements.value;
-import ir.elements.types.type;
-import ir.elements.io;
-import ir.elements.assembly;
+import ir.element;
+import ir.block;
+import ir.value;
+import ir.types.type;
+import ir.io;
+import ir.assembly;
 import std.file;
 
 enum CuOpCode : ubyte {
@@ -83,9 +83,9 @@ struct CuIRInstruction {
     /**
         Resolve any extra information
     */
-    void resolve(CuBasicBlock mod) {
+    void resolve(CuBasicBlock block) {
         foreach(ref operand; operands) {
-            operand.resolve(mod);
+            operand.resolve(block);
         }
     }
 

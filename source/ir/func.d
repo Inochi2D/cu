@@ -4,11 +4,11 @@
     
     Authors: Luna Nielsen
 */
-module ir.elements.func;
-import ir.elements.types.type;
-import ir.elements.mod;
-import ir.elements.io;
-import ir.elements.block;
+module ir.func;
+import ir.types.type;
+import ir.mod;
+import ir.io;
+import ir.block;
 import std.format;
 
 class CuFunc : CuScopedType {
@@ -124,7 +124,10 @@ public:
     override
     void resolve() {
         super.resolve();
-        foreach(ref block; blocks) block.resolve();
+        foreach(ref block; blocks) {
+            block.setParent(this);
+            block.resolve();
+        }
     }
 
     override

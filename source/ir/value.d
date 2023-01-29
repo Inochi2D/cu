@@ -4,13 +4,13 @@
     
     Authors: Luna Nielsen
 */
-module ir.elements.value;
-import ir.elements.element;
-import ir.elements.types.type;
+module ir.value;
+import ir.element;
+import ir.types.type;
 
 import std.traits;
 import std.format;
-import ir.elements.io;
+import ir.io;
 
 class CuValue : CuElement {
 private:

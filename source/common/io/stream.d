@@ -172,7 +172,7 @@ public:
         if (cursor >= size) return -1;
 
         // Less than full length
-        if (cursor+buffer.length >= size) {
+        if (cursor+buffer.length > size) {
 
             // Recalc runlength and read
             runLength = size-(cursor+buffer.length-1);

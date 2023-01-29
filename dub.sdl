@@ -4,18 +4,18 @@ authors "Inochi2D Project"
 copyright "Copyright © 2023, Inochi2D Project"
 license "BSD 2-clause"
 dependency "silly" version="~>1.1.1"
-targetPath "out/"
+dependency "commandr" version="~>0.2.0"
 targetType "executable"
+targetPath "out/"
 
-/// Mode in which Cu runs through a IR->LLVM IR JIT Compiler
-/// Eventually it may be possible to make Cu emit AOT compiled object files for linking.
+lflags "-rpath" "." platform="osx-ldc"
+
 configuration "jit" {
-    versions "CU_JIT"
-    dependency "llvm-d" version="~>3.0.0"
+	dependency "llvm-d" version="~>3.0.0"
+	targetType "executable"
+	versions "CU_JIT" "LLVM_Load"
 }
-
-/// Mode in which Cu runs through a IR->Bytecode interpreter
-/// Eventually it may be possible to emit a .cubc bytecode blob for fast loading.
 configuration "interpreted" {
-    versions "CU_INTERP"
+	targetType "executable"
+	versions "CU_INTERP"
 }

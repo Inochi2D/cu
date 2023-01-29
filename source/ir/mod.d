@@ -4,15 +4,15 @@
     
     Authors: Luna Nielsen
 */
-module ir.elements.mod;
-import ir.elements.element;
+module ir.mod;
+import ir.element;
 
 public import common.io.writer;
 public import common.io.reader;
-import ir.elements.types.type;
-import ir.elements.value;
-import ir.elements.io;
-import ir.elements.func;
+import ir.types.type;
+import ir.value;
+import ir.io;
+import ir.func;
 
 class CuModule : CuElement {
 private:

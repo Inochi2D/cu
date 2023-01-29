@@ -4,11 +4,11 @@
     
     Authors: Luna Nielsen
 */
-module ir.elements.block;
-import ir.elements.element;
-import ir.elements.func;
-import ir.elements.io;
-import ir.elements.value;
+module ir.block;
+import ir.element;
+import ir.func;
+import ir.io;
+import ir.value;
 import ir.opcodes;
 import std.format;
 
@@ -19,6 +19,10 @@ private:
 
 package(ir):
     this() { }
+
+    void setParent(CuFunc parent) {
+        this.parent = parent;
+    }
 
     this(CuFunc parent, string name) {
         this.parent = parent;

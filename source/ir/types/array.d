@@ -4,10 +4,10 @@
     
     Authors: Luna Nielsen
 */
-module ir.elements.types.array;
-import ir.elements.types.type;
+module ir.types.array;
+import ir.types.type;
 import common.io;
-import ir.elements.io;
+import ir.io;
 
 class CuArray : CuType {
 private:

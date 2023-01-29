@@ -4,16 +4,16 @@
     
     Authors: Luna Nielsen
 */
-module ir.elements.assembly;
-import ir.elements.element;
-import ir.elements.mod;
-import ir.elements.types.type;
+module ir.assembly;
+import ir.element;
+import ir.mod;
+import ir.types.type;
 import std.exception : enforce;
 
 public import common.io.writer;
 public import common.io.reader;
 public import common.io.stream;
-public import ir.elements.io;
+public import ir.io;
 import std.socket;
 
 /**
@@ -52,6 +52,25 @@ struct CuVersion {
 
 enum CU_MAGIC_BYTES = "CUASM00";
 
+struct CuAssemblyDependency {
+    string fileName;
+    CuVersion version_;
+
+    void serialize(StreamWriter buffer) {
+        buffer.write(fileName);
+        buffer.write(version_.major);
+        buffer.write(version_.minor);
+        buffer.write(version_.patch);
+    }
+
+    void deserialize(CuScopedReader buffer) {
+        buffer.read(fileName);
+        buffer.read(version_.major);
+        buffer.read(version_.minor);
+        buffer.read(version_.patch);
+    }
+}
+
 class CuAssembly : CuElement {
 private:
 
@@ -82,6 +101,11 @@ public:
     CuVersion version_;
 
     /**
+        Assemblies this assembly depends on
+    */
+    CuAssemblyDependency[] dependencies;
+
+    /**
         Modules exposed by the assembly
     */
     CuModule[] modules;
@@ -96,6 +120,7 @@ public:
         buffer.write(name);
         buffer.write(author);
         buffer.write(copyright);
+        buffer.write(dependencies);
         buffer.write(modules);
     }
 
@@ -109,6 +134,7 @@ public:
         buffer.read(name);
         buffer.read(author);
         buffer.read(copyright);
+        buffer.read(dependencies);
         buffer.read(modules);
         this.resolve();
     }

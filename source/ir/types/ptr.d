@@ -4,9 +4,9 @@
     
     Authors: Luna Nielsen
 */
-module ir.elements.types.ptr;
-import ir.elements.types.type;
-import ir.elements.io;
+module ir.types.ptr;
+import ir.types.type;
+import ir.io;
 import common.io;
 
 class CuPointer : CuType {

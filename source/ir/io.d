@@ -4,9 +4,9 @@
     
     Authors: Luna Nielsen
 */
-module ir.elements.io;
+module ir.io;
 import common.io.reader;
-import ir.elements.assembly;
+import ir.assembly;
 import std.traits;
 import std.bitmanip;
 

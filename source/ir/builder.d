@@ -5,9 +5,9 @@
     Authors: Luna Nielsen
 */
 module ir.builder;
-import ir.elements.block;
-import ir.elements.types.type;
-import ir.elements.value;
+import ir.block;
+import ir.types.type;
+import ir.value;
 import ir.opcodes;
 
 import std.conv : text;
@@ -114,16 +114,13 @@ public:
         return retVal;
     }
 
-    CuValue buildRet() { 
-        CuValue retVal = new CuValue(cuirCreateVoid());
-
+    void buildRet() {
         block.instructions ~= CuIRInstruction(
-            retVal, 
+            null, 
             CuOpCode.RET, 
             cuirCreateVoid(), 
             []
         );
-        return retVal;
     }
 
     CuValue buildJump(CuBasicBlock newblock) { 
