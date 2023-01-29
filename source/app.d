@@ -61,8 +61,10 @@ void exportTestAssembly() {
 	import ir.types.type;
 	import ir.builder;
 	CuAssembly asm_ = new CuAssembly();
-	asm_.name = "uwu";
-	asm_.flags = CuAssemblyFlags.executable;
+	asm_.info.name = "TestAssembly.cua";
+	asm_.info.version_ = CuVersion(1, 0, 0);
+	asm_.info.humanName = "uwu";
+	asm_.info.flags = CuAssemblyFlags.executable;
 	CuModule m_std = new CuModule("std");
 	m_std.getOrCreateSubmodule("stdio");
 	asm_.modules ~= m_std;

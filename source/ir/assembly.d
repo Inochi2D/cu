@@ -53,37 +53,54 @@ struct CuVersion {
 enum CU_MAGIC_BYTES = "CUASM00";
 
 struct CuAssemblyDependency {
-    string fileName;
+    /**
+        Qualifying name for the dependency
+    */
+    string name;
+    
+    /**
+        Version of the dependency
+    */
     CuVersion version_;
 
     void serialize(StreamWriter buffer) {
-        buffer.write(fileName);
+        buffer.write(name);
         buffer.write(version_.major);
         buffer.write(version_.minor);
         buffer.write(version_.patch);
     }
 
     void deserialize(CuScopedReader buffer) {
-        buffer.read(fileName);
+        buffer.read(name);
+        buffer.read(version_.major);
+        buffer.read(version_.minor);
+        buffer.read(version_.patch);
+    }
+
+    void deserialize(StreamReader buffer) {
+        buffer.read(name);
         buffer.read(version_.major);
         buffer.read(version_.minor);
         buffer.read(version_.patch);
     }
 }
 
-class CuAssembly : CuElement {
-private:
+struct CuAssemblyInfo {
 
-public:
     /**
         Flags describing what type of assembly this is
     */
     CuAssemblyFlags flags;
 
     /**
-        Name of the assembly
+        Cu Assembly name in format of (Name.cua)
     */
     string name;
+
+    /**
+        Name of the assembly
+    */
+    string humanName;
 
     /**
         Author of the assembly
@@ -105,6 +122,60 @@ public:
     */
     CuAssemblyDependency[] dependencies;
 
+    void serialize(StreamWriter buffer) {
+        buffer.write(cast(ushort)flags);
+        buffer.write(version_.major);
+        buffer.write(version_.minor);
+        buffer.write(version_.patch);
+        buffer.write(name);
+        buffer.write(humanName);
+        buffer.write(author);
+        buffer.write(copyright);
+        buffer.write(dependencies);
+    }
+
+    void deserialize(CuScopedReader buffer) {
+        buffer.read(flags);
+        buffer.read(version_.major);
+        buffer.read(version_.minor);
+        buffer.read(version_.patch);
+        buffer.read(name);
+        buffer.read(humanName);
+        buffer.read(author);
+        buffer.read(copyright);
+        buffer.read(dependencies);
+    }
+
+    void deserialize(StreamReader buffer) {
+        buffer.read(flags);
+        buffer.read(version_.major);
+        buffer.read(version_.minor);
+        buffer.read(version_.patch);
+        buffer.read(name);
+        buffer.read(humanName);
+        buffer.read(author);
+        buffer.read(copyright);
+
+        uint dependencyCount;
+        buffer.read(dependencyCount);
+        foreach(i; 0..dependencyCount) {
+            CuAssemblyDependency dep;
+            dep.deserialize(buffer);
+            dependencies ~= dep;
+        }
+        
+    }
+}
+
+class CuAssembly : CuElement {
+private:
+
+public:
+    /**
+        Information about an assembly
+    */
+    CuAssemblyInfo info;
+
     /**
         Modules exposed by the assembly
     */
@@ -113,28 +184,14 @@ public:
     override
     void serialize(StreamWriter buffer) {
         buffer.rawWrite(CU_MAGIC_BYTES);
-        buffer.write(cast(ushort)flags);
-        buffer.write(version_.major);
-        buffer.write(version_.minor);
-        buffer.write(version_.patch);
-        buffer.write(name);
-        buffer.write(author);
-        buffer.write(copyright);
-        buffer.write(dependencies);
+        buffer.write(info);
         buffer.write(modules);
     }
 
     override
     void deserialize(CuScopedReader buffer) {
         enforce(buffer.rawRead!string(CU_MAGIC_BYTES.length) == CU_MAGIC_BYTES, "Not Cu Assembly");
-        buffer.read(flags);
-        buffer.read(version_.major);
-        buffer.read(version_.minor);
-        buffer.read(version_.patch);
-        buffer.read(name);
-        buffer.read(author);
-        buffer.read(copyright);
-        buffer.read(dependencies);
+        buffer.read(info);
         buffer.read(modules);
         this.resolve();
     }
@@ -155,6 +212,24 @@ public:
         import std.stdio : File;
         FileStream stream = new FileStream(File(path, "rb"));
         return CuAssembly.fromStream(stream);
+    }
+
+    /**
+        Gets information about cu assembly from a stream
+    */
+    static CuAssemblyInfo infoFromStream(Stream stream) {
+        CuAssemblyInfo info;
+        info.deserialize(new StreamReader(stream));
+        return info;
+    }
+
+    /**
+        Gets information about cu assembly from a file
+    */
+    static CuAssemblyInfo infoFromFile(string path) {
+        import std.stdio : File;
+        FileStream stream = new FileStream(File(path, "rb"));
+        return CuAssembly.infoFromStream(stream);
     }
 
     /**
@@ -182,11 +257,11 @@ public:
     }
 
     bool isExectuable() {
-        return (flags & CuAssemblyFlags.executable) == CuAssemblyFlags.executable;
+        return (info.flags & CuAssemblyFlags.executable) == CuAssemblyFlags.executable;
     }
 
     bool isLibrary() {
-        return (flags & CuAssemblyFlags.library) == CuAssemblyFlags.library;
+        return (info.flags & CuAssemblyFlags.library) == CuAssemblyFlags.library;
     }
 
     CuScopedType findFromPath(string path) {
@@ -198,11 +273,11 @@ public:
         import compiler.common.utils : offsetByLines;
         import std.format : format;
 
-        string oString = "version %s\nauthor \"%s\"\ncopyright \"%s\"\n".format(version_.toString(), author, copyright);
+        string oString = "version %s\nauthor \"%s\"\ncopyright \"%s\"\n".format(info.version_.toString(), info.author, info.copyright);
         foreach(mod; modules) {
             oString ~= mod.getStringPretty();
         }
 
-        return "assembly \"%s\" {\n%s}".format(name, offsetByLines(oString, 2));
+        return "assembly \"%s (%s)\" {\n%s}".format(info.name, info.humanName, offsetByLines(oString, 2));
     }
 }
